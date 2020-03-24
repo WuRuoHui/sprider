@@ -5,6 +5,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import java.util.List;
+
 /**
  * @program: sprider
  * @description: 爬虫测试
@@ -35,9 +37,38 @@ public class Spider {
 
         clickOption(webDriver, "工作经验", "应届毕业生");
         clickOption(webDriver, "学历要求", "本科");
-        clickOption(webDriver, "融资阶段", "天使轮");
-        clickOption(webDriver, "公司规模", "15-50人");
+//        clickOption(webDriver, "融资阶段", "天使轮");
+        clickOption(webDriver, "融资阶段", "不限");
+        clickOption(webDriver, "公司规模", "不限");
         clickOption(webDriver, "行业领域", "移动互联网");
+
+        //解析页面元素
+        extractJobsByPagination(webDriver);
+
+    }
+
+    private static void extractJobsByPagination(WebDriver webDriver) {
+        List<WebElement> jobItemListElement = webDriver.findElements(By.className("con_list_item"));
+        for (WebElement jobItem : jobItemListElement) {
+            String companyName = jobItem.findElement(By.className("company")).findElement(By.className("company_name")).getText();
+            String money = jobItem.findElement(By.className("position")).findElement(By.className("money")).getText();
+            System.out.println("公司名："+companyName+"；薪资："+money);
+        }
+        //获取下一页按钮
+        
+        WebElement pagerNextBtn = webDriver.findElement(By.className("pager_next"));
+        if (pagerNextBtn == null) {
+            return;
+        }
+        if (!pagerNextBtn.getAttribute("class").contains("pager_next_disable")) {
+            pagerNextBtn.click();
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            extractJobsByPagination(webDriver);
+        }
     }
 
     private static void clickOption(WebDriver webDriver, String chooseTitle, String optionTitle) {
